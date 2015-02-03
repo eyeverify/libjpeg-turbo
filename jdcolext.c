@@ -12,48 +12,6 @@
 
 /* This file is included by jdcolor.c */
 
-
-#if EV_OPTIMIZE
-
-#ifndef FIRST
-#define FIRST
-
-static void get_start_end(j_decompress_ptr cinfo, int* start_col, int* end_col)
-{
-  if (!cinfo->n_crops) {
-    *start_col = 0;
-    *end_col = cinfo->output_width - 1;
-    return;
-  }
-  int row = cinfo->output_scanline;
-
-  int st = -1;
-  int en = -2;
-  int i;
-  for (i = 0; i < cinfo->n_crops; i++) {
-    if (row < cinfo->crops[i].y1 || row > cinfo->crops[i].y2) {
-      continue;
-    }
-    if (st < 0) {
-      st = cinfo->crops[i].x1;
-      en = cinfo->crops[i].x2;
-    }
-    else {
-      if (st > cinfo->crops[i].x1) {
-	st = cinfo->crops[i].x1;
-      }
-      if (en < cinfo->crops[i].x2) {
-	en = cinfo->crops[i].x2;
-      }
-    }
-  }
-  *start_col = st;
-  *end_col = en;
-}
-#endif
-
-#endif
-
 /*
  * Convert some rows of samples to the output colorspace.
  *
@@ -92,37 +50,9 @@ ycc_rgb_convert_internal (j_decompress_ptr cinfo,
     inptr0 = input_buf[0][input_row];
     inptr1 = input_buf[1][input_row];
     inptr2 = input_buf[2][input_row];
-#if EV_OPTIMIZE
-    int start_col = 0;
-    int end_col = num_cols;
-    get_start_end(cinfo, &start_col, &end_col);
-    if (cinfo->crop_y_ptr && cinfo->crop_y_stride) {
-      if (cinfo->n_crops) {
-	int len = cinfo->crops[0].x2 - cinfo->crops[0].x1 + 1;
-	if (len > cinfo->crop_y_stride) {
-	  len = cinfo->crop_y_stride;
-	}
-	memcpy(cinfo->crop_y_ptr, inptr0 + cinfo->crops[0].x1, len);
-	cinfo->crop_y_ptr += cinfo->crop_y_stride;
-      }
-      else {
-	int len = num_cols;
-	if (len > cinfo->crop_y_stride) {
-	  len = cinfo->crop_y_stride;
-	}
-	memcpy(cinfo->crop_y_ptr, inptr0, len);
-	cinfo->crop_y_ptr += cinfo->crop_y_stride;
-      }
-    }
-#endif
     input_row++;
     outptr = *output_buf++;
-#if EV_OPTIMIZE
-    outptr += (start_col * RGB_PIXELSIZE);
-    for (col = start_col; col <= end_col; col++)
-#else
     for (col = 0; col < num_cols; col++)
-#endif
       {
       y  = GETJSAMPLE(inptr0[col]);
       cb = GETJSAMPLE(inptr1[col]);

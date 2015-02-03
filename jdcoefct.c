@@ -154,40 +154,6 @@ start_output_pass (j_decompress_ptr cinfo)
   LOGM_E("start_output_pass");
 }
 
-#if EV_OPTIMIZE
-
-static int jpeg_in_crop(j_decompress_ptr cinfo, int output_col, int window)
-{
-  if (!cinfo->n_crops) {
-    return 1;
-  }
-  int x1 = output_col;
-  int y1 = cinfo->output_scanline;
-  int x2 = x1 + window - 1;
-  int y2 = y1 + window - 1;
-  int i;
-  int res = 0;
-
-  for (i = 0; i < cinfo->n_crops; i++) {
-    int xleft = cinfo->crops[i].x1 / 2 - 3;
-    int xright = cinfo->crops[i].x2;
-    if (xleft<=x1 && cinfo->crops[i].y1<=y1 && x1<=xright && y1<=cinfo->crops[i].y2) {
-      return 1;
-    }
-    if (xleft<=x1 && cinfo->crops[i].y1<=y2 && x1<=xright && y2<=cinfo->crops[i].y2) {
-      return 1;
-    }
-    if (xleft<=x2 && cinfo->crops[i].y1<=y1 && x2<=xright && y1<=cinfo->crops[i].y2) {
-      return 1;
-    }
-    if (xleft<=x2 && cinfo->crops[i].y2<=y2 && x2<=xright && y2<=cinfo->crops[i].y2) {
-      return 1;
-    }
-  }
-  return 0;
-}
-#endif
-
 /*
  * Decompress and return some data in the single-pass case.
  * Always attempts to emit one fully interleaved MCU row ("iMCU" row).
@@ -269,15 +235,9 @@ decompress_onepass (j_decompress_ptr cinfo, JSAMPIMAGE output_buf)
 	  if (cinfo->input_iMCU_row < last_iMCU_row || yoffset+yindex < compptr->last_row_height) {
 	    output_col = start_col;
 	    for (xindex = 0; xindex < useful_width; xindex++) {
-#if EV_OPTIMIZE
-	      if (jpeg_in_crop(cinfo, output_col, 8)) {
-#endif
 		(*inverse_DCT) (cinfo, compptr,
 				(JCOEFPTR) coef->MCU_buffer[blkn+xindex],
 				output_ptr, output_col);
-#if EV_OPTIMIZE
-	      }
-#endif
 	      output_col += compptr->_DCT_scaled_size;
 	    }
 	  }

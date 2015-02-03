@@ -86,12 +86,6 @@ jpeg_CreateDecompress (j_decompress_ptr cinfo, int version, size_t structsize)
   /* OK, I'm ready */
   cinfo->global_state = DSTATE_START;
   
-#if EV_OPTIMIZE
-  cinfo->n_crops = 0;
-  memset(cinfo->crops, 0, sizeof(cinfo->crops));
-  cinfo->crop_y_ptr;
-  cinfo->crop_y_stride = 0;
-#endif
   LOGM_E("jpeg_CreateDecompress");
 }
 

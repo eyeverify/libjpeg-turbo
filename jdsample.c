@@ -105,26 +105,8 @@ sep_upsample (j_decompress_ptr cinfo,
   JDIMENSION num_rows;
   LOGM_S("sep_upsample");
 
-#if EV_OPTIMIZE
-  int do_decode = 1;
-  if (cinfo->n_crops) {
-    int i;
-    do_decode = 0;
-    int row = cinfo->output_scanline;
-    for (i = 0; i < cinfo->n_crops; i++) {
-      if (row >= cinfo->crops[i].y1 && row<=cinfo->crops[i].y2) {
-	do_decode = 1;
-	break;
-      }
-    }
-  }
-#endif
-
   /* Fill the conversion buffer, if it's empty */
   if (upsample->next_row_out >= cinfo->max_v_samp_factor) {
-#if EV_OPTIMIZE
-  if (do_decode) {
-#endif
     for (ci = 0, compptr = cinfo->comp_info; ci < cinfo->num_components;
 	 ci++, compptr++) {
       /* Invoke per-component upsample method.  Notice we pass a POINTER
@@ -134,9 +116,6 @@ sep_upsample (j_decompress_ptr cinfo,
 	input_buf[ci] + (*in_row_group_ctr * upsample->rowgroup_height[ci]),
 	upsample->color_buf + ci);
     }
-#if EV_OPTIMIZE
-    }
-#endif
     upsample->next_row_out = 0;
   }
 
@@ -154,16 +133,10 @@ sep_upsample (j_decompress_ptr cinfo,
   if (num_rows > out_rows_avail)
     num_rows = out_rows_avail;
 
-#if EV_OPTIMIZE
-  if (do_decode) {
-#endif
     (*cinfo->cconvert->color_convert) (cinfo, upsample->color_buf,
 				       (JDIMENSION) upsample->next_row_out,
 				       output_buf + *out_row_ctr,
 				       (int) num_rows);
-#if EV_OPTIMIZE 
-  }
-#endif
   /* Adjust counts */
   *out_row_ctr += num_rows;
   upsample->rows_to_go -= num_rows;
@@ -324,72 +297,6 @@ h2v2_upsample (j_decompress_ptr cinfo, jpeg_component_info * compptr,
 }
 
 
-#if EV_OPTIMIZE
-
-static int get_sample_start_end(j_decompress_ptr cinfo, int last_dcol, int* start_col, int* end_col, int* n_cols)
-{
-  int start_dcol = 0;
-  int end_dcol = last_dcol;
-  int nc = last_dcol + 1;
-  //  if (!cinfo->n_crops) {
-    *start_col = start_dcol;
-    *end_col = end_dcol;
-    *n_cols = nc;
-    //return 0;
-    //  }
-
-  int row = cinfo->output_scanline;
-
-  int st = -1;
-  int en = -2;
-  int i;
-  for (i = 0; i < cinfo->n_crops; i++) {
-    if (row < cinfo->crops[i].y1 || row > cinfo->crops[i].y2) {
-      continue;
-    }
-    int sc = cinfo->crops[i].x1/2;
-    int ec = cinfo->crops[i].x2/2 + 1;
-    if (ec > last_dcol) {
-      ec = last_dcol;
-    }
-    if (st < 0) {
-      st = sc;
-      en = ec;
-    }
-    else {
-      if (st > sc) {
-	st = sc;
-      }
-      if (en < ec) {
-	en = ec;
-      }
-    }
-  }
-  if (st >= 0) {
-    if (en < last_dcol) {
-      en++;
-    }
-    nc = end_dcol - start_dcol;
-    if (st) {
-      nc--;
-    }
-    if (en == last_dcol) {
-      nc--;
-    }
-  }
-#ifndef ANDROID
-  *start_col = st;
-  *end_col = en;
-  *n_cols = nc;
-#endif
-  if (st < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-#endif
-
 /*
  * Fancy processing for the common case of 2:1 horizontal and 1:1 vertical.
  *
@@ -418,43 +325,8 @@ h2v1_fancy_upsample (j_decompress_ptr cinfo, jpeg_component_info * compptr,
   LOGM_S("h2v1_fancy_upsample");
 
   for (inrow = 0; inrow < cinfo->max_v_samp_factor; inrow++) {
-#if EV_OPTIMIZE
-    int last_dcol = compptr->downsampled_width - 1;
-    int start_dcol;
-    int end_dcol;
-    int n_cols;
-    if (get_sample_start_end(cinfo, last_dcol, &start_dcol, &end_dcol, &n_cols)) {
-      continue;
-    }
-#endif
     inptr = input_data[inrow];
     outptr = output_data[inrow];
-#if EV_OPTIMIZE
-    int row = cinfo->output_scanline;
-    inptr += start_dcol;
-    outptr += start_dcol*2;
-    if (!start_dcol) {
-      /* Special case for first column */
-      invalue = GETJSAMPLE(*inptr++);
-      *outptr++ = (JSAMPLE) invalue;
-      *outptr++ = (JSAMPLE) ((invalue * 3 + GETJSAMPLE(*inptr) + 2) >> 2);
-    }
-
-    for (colctr = n_cols; colctr > 0; colctr--) {
-      /* General case: 3/4 * nearer pixel + 1/4 * further pixel */
-      invalue = GETJSAMPLE(*inptr++) * 3;
-      *outptr++ = (JSAMPLE) ((invalue + GETJSAMPLE(inptr[-2]) + 1) >> 2);
-      *outptr++ = (JSAMPLE) ((invalue + GETJSAMPLE(*inptr) + 2) >> 2);
-    }
-
-    if (end_dcol == last_dcol) {
-      /* Special case for last column */
-      invalue = GETJSAMPLE(*inptr);
-      *outptr++ = (JSAMPLE) ((invalue * 3 + GETJSAMPLE(inptr[-1]) + 1) >> 2);
-      *outptr++ = (JSAMPLE) invalue;
-    }
-
-#else
     /* Special case for first column */
     invalue = GETJSAMPLE(*inptr++);
     *outptr++ = (JSAMPLE) invalue;
@@ -471,7 +343,6 @@ h2v1_fancy_upsample (j_decompress_ptr cinfo, jpeg_component_info * compptr,
     invalue = GETJSAMPLE(*inptr);
     *outptr++ = (JSAMPLE) ((invalue * 3 + GETJSAMPLE(inptr[-1]) + 1) >> 2);
     *outptr++ = (JSAMPLE) invalue;
-#endif
   }
   LOGM_E("h2v1_fancy_upsample");
 }

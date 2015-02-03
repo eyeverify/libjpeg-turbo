@@ -63,8 +63,6 @@
 
 #define INLINE inline
 
-#define EV_OPTIMIZE 0
-
 extern int logm_init(const char* fname);
 extern void logm_term();
 extern void logm_start(const char* name);

@@ -470,15 +470,6 @@ struct jpeg_compress_struct {
   int script_space_size;
 };
 
-#if EV_OPTIMIZE
-struct jpeg_crop_t {
-  int x1;
-  int y1;
-  int x2;
-  int y2;
-};
-#endif
-
 /* Master record for a decompression instance */
 
 struct jpeg_decompress_struct {
@@ -720,13 +711,6 @@ struct jpeg_decompress_struct {
   struct jpeg_upsampler * upsample;
   struct jpeg_color_deconverter * cconvert;
   struct jpeg_color_quantizer * cquantize;
-
-#if EV_OPTIMIZE
-  struct jpeg_crop_t crops[2];
-  int n_crops;
-  unsigned char* crop_y_ptr;
-  int crop_y_stride;
-#endif
 };
 
 
