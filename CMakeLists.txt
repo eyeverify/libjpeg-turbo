@@ -1,6 +1,6 @@
 project(jpeg-turbo)
 
-set ( EV_JPEG_TURBO_SRCS
+set (EV_JPEG_TURBO_SRCS
     jcapimin.c 
     jcapistd.c 
     jccoefct.c 
@@ -64,6 +64,6 @@ set ( EV_JPEG_TURBO_SRCS
     jsimd_none.c
 )
 
-add_library( jpeg-turbo ${EV_JPEG_TURBO_SRCS} )
+add_library(jpeg-turbo ${EV_JPEG_TURBO_SRCS})
 
 install(TARGETS jpeg-turbo DESTINATION lib)
