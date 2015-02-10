@@ -1,5 +1,9 @@
 project(jpeg-turbo)
 
+if(ANDROID)
+    set(BUILD_SHARED_LIBS ON)
+endif()
+
 set (EV_JPEG_TURBO_SRCS
     jcapimin.c 
     jcapistd.c 
