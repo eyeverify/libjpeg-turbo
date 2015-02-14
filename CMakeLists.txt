@@ -1,73 +1,69 @@
 project(jpeg-turbo)
 
-if(ANDROID)
-    set(BUILD_SHARED_LIBS ON)
-endif()
-
 set (EV_JPEG_TURBO_SRCS
-    jcapimin.c 
-    jcapistd.c 
-    jccoefct.c 
-    jccolor.c 
-    jcdctmgr.c 
-    jchuff.c 
+    jcapimin.c
+    jcapistd.c
+    jccoefct.c
+    jccolor.c
+    jcdctmgr.c
+    jchuff.c
     jchuff.h
-    jcinit.c 
-    jcmainct.c 
-    jcmarker.c 
-    jcmaster.c 
-    jcomapi.c 
-    jcparam.c 
-    jcphuff.c 
-    jcprepct.c 
-    jcsample.c 
-    jctrans.c 
-    jdapimin.c 
-    jdapistd.c 
-    jdatadst.c 
-    jdatasrc.c 
+    jcinit.c
+    jcmainct.c
+    jcmarker.c
+    jcmaster.c
+    jcomapi.c
+    jcparam.c
+    jcphuff.c
+    jcprepct.c
+    jcsample.c
+    jctrans.c
+    jdapimin.c
+    jdapistd.c
+    jdatadst.c
+    jdatasrc.c
     jdct.h
-    jdcoefct.c 
-    jdcolor.c 
-    jddctmgr.c 
-    jdhuff.c 
+    jdcoefct.c
+    jdcolor.c
+    jddctmgr.c
+    jdhuff.c
     jdhuff.h
-    jdinput.c 
-    jdmainct.c 
-    jdmarker.c 
-    jdmaster.c 
-    jdmerge.c 
-    jdphuff.c 
-    jdpostct.c 
-    jdsample.c 
-    jdtrans.c 
-    jerror.c 
-    jfdctflt.c 
-    jfdctfst.c 
-    jfdctint.c 
-    jidctflt.c 
-    jidctfst.c 
+    jdinput.c
+    jdmainct.c
+    jdmarker.c
+    jdmaster.c
+    jdmerge.c
+    jdphuff.c
+    jdpostct.c
+    jdsample.c
+    jdtrans.c
+    jerror.c
+    jfdctflt.c
+    jfdctfst.c
+    jfdctint.c
+    jidctflt.c
+    jidctfst.c
     jidctint.c
-    jidctred.c 
+    jidctred.c
     jinclude.h
-    jquant1.c 
-    jquant2.c 
-    jutils.c 
-    jmemmgr.c 
+    jquant1.c
+    jquant2.c
+    jutils.c
+    jmemmgr.c
     jmemsys.h
     jpegint.h
     jpeglib.h
     jmemnobs.c
-    jaricom.c 
-    jcarith.c 
+    jaricom.c
+    jcarith.c
     jdarith.c
-    turbojpeg.c 
-    transupp.c 
-    jdatadst-tj.c 
+    turbojpeg.c
+    transupp.c
+    jdatadst-tj.c
     jdatasrc-tj.c
     jsimd_none.c
 )
 
-add_library(jpeg-turbo ${EV_JPEG_TURBO_SRCS})
+add_library(jpeg-turbo STATIC ${EV_JPEG_TURBO_SRCS})
 
 install(TARGETS jpeg-turbo DESTINATION lib)
